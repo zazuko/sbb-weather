@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SBB Weather Widget</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="node_modules/weather-icons/css/weather-icons.min.css">
+</head>
+
+<body onload="render();" style="text-align:center;">
+    <div id="diagram" style="margin: 0 auto;"></div>
+
+    <script id="weather-daily.sparql" type="application/sparql-query">
+PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX  mm:   <http://rdf.meteomatics.com/mm/>
+PREFIX  mm-parameters: <http://rdf.meteomatics.com/mm/parameters/>
+
+SELECT  ?station_name ?t_2m ?precip_1h ?fresh_snow_1h ?relative_humidity_2m ?weather_symbol_1h ?date
+WHERE
+  { BIND("${from}"^^xsd:dateTime AS ?from)
+    BIND("${to}"^^xsd:dateTime AS ?to)
+    BIND(${didok_id} AS ?didok_id)
+    ?station  mm:didok_id           ?didok_id ;
+              mm:station_name       ?station_name .
+    ?sub      mm:location           ?station ;
+              mm:validdate          ?date ;
+              mm-parameters:t_2m:C  ?t_2m ;
+              mm-parameters:precip_1h:mm  ?precip_1h ;
+              mm-parameters:fresh_snow_1h:cm  ?fresh_snow_1h ;
+              mm-parameters:relative_humidity_2m:p  ?relative_humidity_2m ;
+              mm-parameters:weather_symbol_1h:idx  ?weather_symbol_1h
+    FILTER ( ?date >= ?from )
+    FILTER ( ?date < ?to )
+  }
+ORDER BY ASC(?date)
+    </script>
+
+    <script id="weather-forecast.sparql" type="application/sparql-query">
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX mm: <http://rdf.meteomatics.com/mm/>
+PREFIX mm-measurements: <http://rdf.meteomatics.com/mm/measurements/>
+PREFIX mm-locations: <http://rdf.meteomatics.com/mm/locations/>
+PREFIX mm-parameters: <http://rdf.meteomatics.com/mm/parameters/>
+
+SELECT ?station_name ?t_2m ?precip_1h ?fresh_snow_1h ?relative_humidity_2m ?weather_symbol_1h ?date WHERE {
+  BIND ("${from}"^^xsd:dateTime as ?from)
+  BIND ("${to}"^^xsd:dateTime as ?to)
+  BIND (${didok_id} as ?didok_id)
+
+  ?station <http://rdf.meteomatics.com/mm/didok_id> ?didok_id .
+  ?station <http://rdf.meteomatics.com/mm/station_name> ?station_name .
+
+  ?sub <http://rdf.meteomatics.com/mm/location> ?station .
+  ?sub <http://rdf.meteomatics.com/mm/validdate> ?date .
+  ?sub mm-parameters:t_2m:C ?t_2m.
+  ?sub mm-parameters:precip_1h:mm ?precip_1h.
+  ?sub mm-parameters:fresh_snow_1h:cm ?fresh_snow_1h.
+  ?sub mm-parameters:relative_humidity_2m:p ?relative_humidity_2m.
+  ?sub <http://rdf.meteomatics.com/mm/parameters/weather_symbol_1h:idx> ?weather_symbol_1h.
+
+  FILTER(?date >= ?from)
+  FILTER(?date < ?to)
+}
+ORDER BY ASC(?date)
+    </script>
+
+    <script id="weather-labels.sparql" type="application/sparql-query">
+PREFIX  mm:   <http://rdf.meteomatics.com/mm/>
+PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX  dcterms: <http://purl.org/dc/terms/>
+
+SELECT  ?label ?title ?description ?unit
+WHERE
+  { BIND("${locale}" AS ?locale)
+    ?param  a                     mm:Parameter ;
+            <http://www.w3.org/2000/01/rdf-schema#label>  ?label ;
+            dcterms:title         ?title ;
+            mm:unit_symbol        ?unit
+    FILTER ( lang(?title) = ?locale )
+    OPTIONAL
+      { ?param  dcterms:description  ?description
+        FILTER ( lang(?description) = ?locale )
+      }
+  }
+    </script>
+
+
+    <script src="node_modules/d3/d3.min.js"></script>
+    <script src="node_modules/d3-queue/build/d3-queue.min.js"></script>
+    <script src="node_modules/d3-sparql-v3/d3-sparql.js"></script>
+    <script src="node_modules/numeral/numeral.js"></script>
+    <script src="node_modules/moment/min/moment.min.js"></script>
+    <script src="node_modules/moment/min/locales.min.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
