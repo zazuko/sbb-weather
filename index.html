@@ -5,10 +5,9 @@
     <meta charset="UTF-8">
     <title>SBB Weather Widget</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="node_modules/weather-icons/css/weather-icons.min.css">
 </head>
 
-<body onload="render();" style="text-align:center;">
+<body onload="SbbWeatherApp.render();" style="text-align:center;">
     <div id="diagram" style="margin: 0 auto;"></div>
 
     <script id="weather-day.sparql" type="application/sparql-query">
@@ -87,13 +86,7 @@ WHERE
     </script>
 
 
-    <script src="node_modules/d3/d3.min.js"></script>
-    <script src="node_modules/d3-queue/build/d3-queue.min.js"></script>
-    <script src="node_modules/d3-sparql-v3/d3-sparql.js"></script>
-    <script src="node_modules/numeral/numeral.js"></script>
-    <script src="node_modules/moment/min/moment.min.js"></script>
-    <script src="node_modules/moment/min/locales.min.js"></script>
-    <script src="app.js"></script>
+    <script src="dist/SbbWeatherApp.js"></script>
 </body>
 
 </html>

@@ -188,6 +188,11 @@ g#windgraph text.arrow{
 }
 
 .x.axis .tick text{
-	font-size: 0.8em;
-	fill:#bababa;
+	font-size: 1.1em;
+	fill: #bababa;
+}
+
+.x.axis path, .x.axis line {
+    fill: none;
+    stroke: none
 }

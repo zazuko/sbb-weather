@@ -1,5 +1,14 @@
+import moment from 'moment'
+import 'moment/locale/de';
+import 'moment/locale/fr';
+import 'moment/locale/it';
+import numeral from 'numeral';
+import * as d3 from 'd3';
+import {queue} from 'd3-queue';
+import {sparql} from 'd3-sparql';
+
 /* global moment, d3, numeral */
-render = function (didok_id, datetime) {
+export function render(didok_id, datetime) {
   var endpoint = '/query'
 
   var locale = window.navigator.userLanguage || window.navigator.language
@@ -35,10 +44,10 @@ render = function (didok_id, datetime) {
   var marginTop = 45
   var marginLeft = 25
 
-  d3.queue()
-  .defer(d3.sparql, endpoint, query0)
-  .defer(d3.sparql, endpoint, query1)
-  .defer(d3.sparql, endpoint, query2)
+  queue()
+  .defer(sparql, endpoint, query0)
+  .defer(sparql, endpoint, query1)
+  .defer(sparql, endpoint, query2)
   .await(function (error, labels, data, data2) {
     // create labels
     for (var key of labels) {
@@ -199,12 +208,12 @@ render = function (didok_id, datetime) {
       return d.precip_1h
     }
 
-    var xScale = d3.time.scale().range([0, 525])
+    var xScale = d3.scaleTime().range([0, 525])
       .domain([
         moment(data[0].date),
         moment(data[data.length - 1].date)
       ])
-    var yScale = d3.scale.linear().range([0, chartHeight])
+    var yScale = d3.scaleLinear().range([0, chartHeight])
       .domain([
         d3.min(data, precipAccessor),
         d3.max(data, precipAccessor)
@@ -214,11 +223,10 @@ render = function (didok_id, datetime) {
     var lookUpTable = data.map(function (d) {
       return moment(d.date)
     })
-    var xAxisTime = d3.svg.axis()
+    var xAxisTime = d3.axisBottom()
       .scale(xScale)
-      .orient('bottom')
-      .ticks(d3.time.hours, 3)
-      .outerTickSize(0)
+      .ticks(d3.timeHour, 3)
+      .tickSizeOuter(0)
       .tickFormat(function (d) {
         var index = 0
         for (index = 0; index < data.length; index++) {
@@ -231,11 +239,10 @@ render = function (didok_id, datetime) {
         }
         return ''
       })
-    var xAxisPrecipitation = d3.svg.axis()
+    var xAxisPrecipitation = d3.axisTop()
       .scale(xScale)
-      .orient('top')
-      .ticks(d3.time.hours, 3)
-      .outerTickSize(0)
+      .ticks(d3.timeHour, 3)
+      .tickSizeOuter(0)
       .tickFormat(function (d) {
         var index = 0
         var precipProbability = data[index].precip_1h
@@ -304,12 +311,12 @@ render = function (didok_id, datetime) {
       return d.relative_humidity_2m
     }
 
-    var xScale = d3.time.scale().range([0, 525])
+    var xScale = d3.scaleTime().range([0, 525])
       .domain([
         moment(data[0].date),
         moment(data[data.length - 1].date)
       ])
-    var yScale = d3.scale.linear().range([0, chartHeight])
+    var yScale = d3.scaleLinear().range([0, chartHeight])
       .domain([
         d3.max(data, humidityAccessor),
         0 // d3.min(data, humidityAccessor)
@@ -320,11 +327,10 @@ render = function (didok_id, datetime) {
       return moment(d.date)
     })
 
-    var xAxisTime = d3.svg.axis()
+    var xAxisTime = d3.axisBottom()
       .scale(xScale)
-      .orient('bottom')
-      .ticks(d3.time.hours, 3)
-      .outerTickSize(0)
+      .ticks(d3.timeHour, 3)
+      .tickSizeOuter(0)
       .tickFormat(function (d) {
         var index = 0
         for (index = 0; index < data.length; index++) {
@@ -338,11 +344,10 @@ render = function (didok_id, datetime) {
         return ''
       })
 
-    var xAxisHumidity = d3.svg.axis()
+    var xAxisHumidity = d3.axisTop()
       .scale(xScale)
-      .orient('top')
-      .ticks(d3.time.hours, 3)
-      .outerTickSize(0)
+      .ticks(d3.timeHour, 3)
+      .tickSizeOuter(0)
       .tickFormat(function (d) {
         var index = 0
         var humidity = data[index].relative_humidity_2m
@@ -359,14 +364,14 @@ render = function (didok_id, datetime) {
       })
 
     // chart with line and background area
-    var line = d3.svg.line().interpolate('basis')
+    var line = d3.line().curve(d3.curveMonotoneX)
       .x(function (d) {
         return xScale(moment(d.date))
       })
       .y(function (d) {
         return yScale(d.relative_humidity_2m)
       })
-    var area = d3.svg.area().interpolate('basis')
+    var area = d3.area().curve(d3.curveMonotoneX)
       .x(function (d) {
         return xScale(moment(d.date))
       })
@@ -416,12 +421,12 @@ render = function (didok_id, datetime) {
       return d.windSpeed
     }
 
-    var xScale = d3.time.scale().range([0, 525])
+    var xScale = d3.scaleTime().range([0, 525])
       .domain([
         moment.tz(data.hourly.data[0].time * 1000, data.timezone),
         moment.tz(data.hourly.data[23].time * 1000, data.timezone)
       ])
-    var yScale = d3.scale.linear().range([0, 3])
+    var yScale = d3.scaleLinear().range([0, 3])
       .domain([
         d3.min(data.hourly.data.slice(0, 24), windAccessor),
         d3.max(data.hourly.data.slice(0, 24), windAccessor)
@@ -431,11 +436,10 @@ render = function (didok_id, datetime) {
     var lookUpTable = data.hourly.data.slice(0, 24).map(function (d) {
       return moment.tz(d.time * 1000, data.timezone)
     })
-    var xAxisTime = d3.svg.axis()
+    var xAxisTime = d3.axisBottom()
       .scale(xScale)
-      .orient('bottom')
-      .ticks(d3.time.hours, 3)
-      .outerTickSize(0)
+      .ticks(d3.timeHour, 3)
+      .tickSizeOuter(0)
       .tickFormat(function (d) {
         var index = 0
         for (index = 0; index < 24; index++) {
@@ -448,11 +452,10 @@ render = function (didok_id, datetime) {
         }
         return ''
       })
-    var xAxisWind = d3.svg.axis()
+    var xAxisWind = d3.axisTop()
       .scale(xScale)
-      .orient('top')
-      .ticks(d3.time.hours, 3)
-      .outerTickSize(0)
+      .ticks(d3.timeHour, 3)
+      .tickSizeOuter(0)
       .tickFormat(function (d) {
         var index = 0
         var windSpeed = data.hourly.data[index].windSpeed
@@ -517,12 +520,12 @@ render = function (didok_id, datetime) {
       return d.t_2m
     }
 
-    var xScale = d3.time.scale().range([0, 525])
+    var xScale = d3.scaleTime().range([0, 525])
       .domain([
         moment(data[0].date),
         moment(data[data.length - 1].date)
       ])
-    var yScale = d3.scale.linear().range([0, chartHeight])
+    var yScale = d3.scaleLinear().range([0, chartHeight])
       .domain([
         d3.max(data, temperatureAccessor),
         d3.min(data, temperatureAccessor) - 3
@@ -533,11 +536,10 @@ render = function (didok_id, datetime) {
       return moment(d.date)
     })
 
-    var xAxisTime = d3.svg.axis()
+    var xAxisTime = d3.axisBottom()
       .scale(xScale)
-      .orient('bottom')
-      .ticks(d3.time.hours, 3)
-      .outerTickSize(0)
+      .ticks(d3.timeHour, 3)
+      .tickSizeOuter(0)
       .tickFormat(function (d) {
         var index = 0
         for (index = 0; index < data.length; index++) {
@@ -551,11 +553,10 @@ render = function (didok_id, datetime) {
         return ''
       })
 
-    var xAxisTemperature = d3.svg.axis()
+    var xAxisTemperature = d3.axisTop()
       .scale(xScale)
-      .orient('top')
-      .ticks(d3.time.hours, 3)
-      .outerTickSize(0)
+      .ticks(d3.timeHour, 3)
+      .tickSizeOuter(0)
       .tickFormat(function (d) {
         var index = 0
         var temperature = data[index].t_2m
@@ -572,14 +573,14 @@ render = function (didok_id, datetime) {
       })
 
     // chart with line and background area
-    var line = d3.svg.line().interpolate('basis')
+    var line = d3.line().curve(d3.curveMonotoneX)
       .x(function (d) {
         return xScale(moment(d.date))
       })
       .y(function (d) {
         return yScale(d.t_2m)
       })
-    var area = d3.svg.area().interpolate('basis')
+    var area = d3.area().curve(d3.curveMonotoneX)
       .x(function (d) {
         return xScale(moment(d.date))
       })
