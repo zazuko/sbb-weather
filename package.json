@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "http-server -P http://sbb.zazuko.com",
-    "build": "webpack src/SbbWeatherApp.js -o dist/SbbWeatherApp.js --output-library SbbWeatherApp",
+    "build": "webpack src/SbbWeatherApp.js -o dist/SbbWeatherApp.js --output-library SbbWeatherApp --mode production",
     "dev": "webpack src/SbbWeatherApp.js -o dist/SbbWeatherApp.js --output-library SbbWeatherApp --mode development --watch"
   },
   "author": "",
