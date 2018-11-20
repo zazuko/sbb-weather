@@ -17,8 +17,8 @@ render = function (didok_id, datetime) {
   query0 = query0.replace('${locale}', locale.substring(0, 2))
   var label = {}
 
-  // query daily
-  var query1 = document.getElementById('weather-daily.sparql').innerHTML
+  // query day
+  var query1 = document.getElementById('weather-day.sparql').innerHTML
   query1 = query1.replace('${from}', from)
   query1 = query1.replace('${to}', to)
   query1 = query1.replace('${didok_id}', didok_id)
@@ -129,28 +129,56 @@ render = function (didok_id, datetime) {
       })
   }
 
-  function mapWeatherToIconContent (iconName) {
-    switch (iconName) {
-      case 'http://rdf.meteomatics.com/mm/symbols/1':
-        return '\uf00d'
-      case 'http://rdf.meteomatics.com/mm/symbols/101':
-        return '\uf02e'
-      case 'rain':
-        return '\uf008'
-      case 'snow':
-        return '\uf00a'
-      case 'sleet':
-        return '\uf0b2'
-      case 'wind':
-        return '\uf085'
-      case 'fog':
-        return '\uf014'
-      case 'cloudy':
-        return '\uf041'
-      case 'partly-cloudy-day':
-        return '\uf002'
-      case 'partly-cloudy-night':
-        return '\uf086'
+  function mapWeatherToIconContent (weather_symbol) {
+    switch (Number(weather_symbol)) {
+      case 0:
+        return 'G'
+      case 1:
+        return 'C'
+      case 101:
+        return 'h'
+      case 2:
+      case 3:
+        return 'g'
+      case 102:
+      case 103:
+        return 'b'
+      case 4:
+      case 104:
+        return 'a'
+      case 5:
+      case 105:
+        return 'l'
+      case 6:
+      case 106:
+        return 'u'
+      case 7:
+      case 107:
+        return 'o'
+      case 8:
+        return 'n'
+      case 108:
+        return 'D'
+      case 9:
+        return 'z'
+      case 109:
+        return 'y'
+      case 10:
+        return 'w'
+      case 110:
+        return 'v'
+      case 11:
+      case 111:
+        return 'j'
+      case 12:
+      case 112:
+        return 'd'
+      case 14:
+      case 114:
+        return 'e'
+      case 15:
+      case 115:
+        return 'k'
       default:
         return ''
     }
@@ -665,6 +693,7 @@ render = function (didok_id, datetime) {
 
   function setCurrentWeatherInformation (current, container) {
     var detailPosition = 120
+    var row1 = 177
     // remove current visualization if already available
     container.selectAll('g#current').remove()
     container = container.append('g').attr('id', 'current')
@@ -689,38 +718,43 @@ render = function (didok_id, datetime) {
     // detail
     var detail = container.append('text')
       .attr('class', 'detail')
-      .attr('x', 225)
+      .attr('x', row1)
       .attr('y', detailPosition)
+
+    detail.append('tspan')
+      .attr('x', row1)
+      .text(label['precip_1h:mm'].title + ': ' + numeral(current.precip_1h).format('0') + ' ' + label['precip_1h:mm'].unit)
+    detail.append('tspan')
+      .attr('x', row1)
+      .attr('dy', '1.4em')
+      .text(label['relative_humidity_2m:p'].title + ': ' + numeral(current.relative_humidity_2m).format('0.0') + label['relative_humidity_2m:p'].unit)
+    detail.append('tspan')
+      .attr('x', row1)
+      .attr('dy', '1.4em')
+      .text(label['fresh_snow_1h:cm'].title + ': ' + numeral(current.fresh_snow_1h).format('0') + ' ' + label['fresh_snow_1h:cm'].unit)
 
 /*    var details = detail.selectAll('tspan')
       .data(['precip_1h:mm'])
       .enter()
       .append('tspan')
-      .attr('x', 225)
+      .attr('x', 352)
       .attr('dy', '1.4em')
       .text(function (d) {
-        return label[d].title + ': ' + numeral(current.relative_humidity_2m).format('0.0') + label[d].unit
+        return label[d].title + ': ' + numeral(current[d.substr(0,d.indexOf(':'))].relative_humidity_2m).format('0.0') + ' ' + label[d].unit
        })
+      .append('svg:title')
+      .text(function (d) {
+        return label[d].description
+      })
 */
 
-    detail.append('tspan')
-      .attr('x', 225)
-      .text(label['precip_1h:mm'].title + ': ' + numeral(current.precip_1h).format('0') + ' ' + label['precip_1h:mm'].unit)
-    detail.append('tspan')
-      .attr('x', 225)
-      .attr('dy', '1.4em')
-      .text(label['relative_humidity_2m:p'].title + ': ' + numeral(current.relative_humidity_2m).format('0.0') + label['relative_humidity_2m:p'].unit)
-    detail.append('tspan')
-      .attr('x', 225)
-      .attr('dy', '1.4em')
-      .text(label['fresh_snow_1h:cm'].title + ': ' + numeral(current.fresh_snow_1h).format('0') + ' ' + label['fresh_snow_1h:cm'].unit)
 
     // weather icon
     var icon = container.append('text')
       .attr('class', 'icon')
       .attr('x', 0)
-      .attr('y', detailPosition + 30)
-      .text(mapWeatherToIconContent(current.weather_symbol_1h))
+      .attr('y', detailPosition + 45)
+      .text(mapWeatherToIconContent(current.weather_symbol))
 
     // degree
     var degree = container.append('text')
