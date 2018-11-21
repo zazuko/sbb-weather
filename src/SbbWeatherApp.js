@@ -19,7 +19,7 @@ export function render (didokId, dateTime, locale, options) {
   moment.locale(locale)
 
   dateTime = moment(dateTime || parameters.dateTime)
-  var date = moment(dateTime).set({h: 0, m: 0, s: 0, ms: 0})
+  var date = moment(dateTime).set({h: 0, m: 0, s: 0, ms: 0}).locale('en')
 
   didokId = parseInt(didokId) || parameters.didokId || 8504136
 
