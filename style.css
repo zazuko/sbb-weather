@@ -34,8 +34,7 @@
 @font-face {
   font-family: "SBBWeather";
   src: url('assets/font/sbb-weather.eot'); /* IE9 Compat Modes */
-  src: url('assets/font/sbb-weather.woff2') format('woff2'), /* Super Modern Browsers */
-       url('assets/font/sbb-weather.woff') format('woff'), /* Pretty Modern Browsers */
+  src: url('assets/font/sbb-weather.woff') format('woff'), /* Pretty Modern Browsers */
        url('assets/font/sbb-weather.ttf')  format('truetype'); /* Safari, Android, iOS */
   font-weight: normal;
   font-style: normal;

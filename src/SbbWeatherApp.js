@@ -32,10 +32,12 @@ export function render(didok_id, datetime) {
   query1 = query1.replace('${to}', to)
   query1 = query1.replace('${didok_id}', didok_id)
 
-  // query precast
+  // query forecast
   var query2 = document.getElementById('weather-forecast.sparql').innerHTML
-  query2 = query2.replace('${from}', from)
-  query2 = query2.replace('${to}', to)
+  var fromDate = date.startOf('isoweek')
+  var toDate = date.startOf('isoweek').add(3*7, 'days')
+  query2 = query2.replace('${from}', fromDate)
+  query2 = query2.replace('${to}', toDate)
   query2 = query2.replace('${didok_id}', didok_id)
 
   // widget global settings
