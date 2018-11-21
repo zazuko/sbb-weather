@@ -92,8 +92,8 @@ input{
 }
 .dayIcon{
 	text-anchor:middle;
-	font-family: weathericons;
-	font-size: 2em;
+	font-family: "SBBWeather";
+	font-size: 4.4em;
 }
 .dayRect{
 	fill: transparent;
@@ -158,7 +158,7 @@ g#windgraph .x.axis.wind text{
 	fill:black;
 }
 g#windgraph text.arrow{
-	font-family: weathericons;
+	font-family: "SBBWeather";
 	text-anchor:middle;
 }
 .button rect{

@@ -1,48 +1,48 @@
 import moment from 'moment'
-import 'moment/locale/de';
-import 'moment/locale/fr';
-import 'moment/locale/it';
-import numeral from 'numeral';
-import * as d3 from 'd3';
-import {queue} from 'd3-queue';
-import {sparql} from 'd3-sparql';
+import 'moment/locale/de'
+import 'moment/locale/fr'
+import 'moment/locale/it'
+import numeral from 'numeral'
+import * as d3 from 'd3'
+import {queue} from 'd3-queue'
+import {sparql} from 'd3-sparql'
+import queryString from 'query-string'
 
-/* global moment, d3, numeral */
-export function render(didok_id, datetime) {
-  var endpoint = '/query'
+/* global location */
+export function render (didokId, dateTime, locale, options) {
+  options = {} || options
+  var endpoint = options.endpoint || '/query'
 
-  var locale = window.navigator.userLanguage || window.navigator.language
+  var parameters = queryString.parse(location.search)
+
+  locale = locale || parameters.locale || window.navigator.userLanguage || window.navigator.language
   moment.locale(locale)
 
-  var datetime = moment(datetime) || moment()
-  var date = moment(datetime).set({h: 0, m: 0, s: 0, ms: 0})
-  var from = date.utc().format()
-  var to = date.add(1, 'day').utc().format()
+  dateTime = moment(dateTime || parameters.dateTime)
+  var date = moment(dateTime).set({h: 0, m: 0, s: 0, ms: 0})
 
-  didok_id = parseInt(didok_id) || 8504136
+  didokId = parseInt(didokId) || parameters.didokId || 8504136
 
   // query labels
   var query0 = document.getElementById('weather-labels.sparql').innerHTML
-  query0 = query0.replace('${locale}', locale.substring(0, 2))
+  query0 = query0.replace('${locale}', ['en', 'de', 'fr', 'it'].includes(locale.substring(0, 2)) ? locale.substring(0, 2) : 'en')
   var label = {}
 
   // query day
   var query1 = document.getElementById('weather-day.sparql').innerHTML
-  query1 = query1.replace('${from}', from)
-  query1 = query1.replace('${to}', to)
-  query1 = query1.replace('${didok_id}', didok_id)
+  query1 = query1.replace('${from}', date.utc().format())
+  query1 = query1.replace('${to}', date.add(1, 'day').utc().format())
+  query1 = query1.replace('${didok_id}', didokId)
 
   // query forecast
   var query2 = document.getElementById('weather-forecast.sparql').innerHTML
-  var fromDate = date.startOf('isoweek')
-  var toDate = date.startOf('isoweek').add(3*7, 'days')
-  query2 = query2.replace('${from}', fromDate)
-  query2 = query2.replace('${to}', toDate)
-  query2 = query2.replace('${didok_id}', didok_id)
+  query2 = query2.replace('${from}', date.startOf('isoweek').utc().format())
+  query2 = query2.replace('${to}', date.startOf('isoweek').add(3 * 7, 'days').utc().format())
+  query2 = query2.replace('${didok_id}', didokId)
 
   // widget global settings
   var width = 575
-  var height = 620
+  var height = 820
   var marginTop = 45
   var marginLeft = 25
 
@@ -51,13 +51,14 @@ export function render(didok_id, datetime) {
   .defer(sparql, endpoint, query1)
   .defer(sparql, endpoint, query2)
   .await(function (error, labels, data, data2) {
+    if (error) { console.log(error) }
     // create labels
     for (var key of labels) {
       label[key.label] = key
     }
 
     // get current entry (last entry already in past)
-    var current = data[data.map(x => moment(x.date).isSameOrBefore(moment(datetime)), data).lastIndexOf(true)]
+    var current = data[data.map(x => moment(x.date).isSameOrBefore(moment(dateTime)), data).lastIndexOf(true)]
     data.current = current
 
     // adding svg element to body and apply settings
@@ -71,7 +72,7 @@ export function render(didok_id, datetime) {
 
     setCurrentWeatherInformation(current, container)
     setCurrentWeatherTemperatureGraph(data, container)
-    addWeekdays(data, container)
+    addWeekdays(data2, container)
   })
 
   function addButtons (data, container, activeIndex) {
@@ -100,7 +101,7 @@ export function render(didok_id, datetime) {
     container.selectAll('g#buttons').remove()
 
     var buttonContainer = container.append('g').attr('id', 'buttons')
-    buttonContainer.style('opacity', 0.0).transition().style('opacity', 1.0)
+//    buttonContainer.style('opacity', 0.0).transition().style('opacity', 1.0)
 
     // add buttons background and text
     var buttons = buttonContainer.selectAll('g.button')
@@ -108,7 +109,7 @@ export function render(didok_id, datetime) {
       .enter()
       .append('g')
       .attr('class', function (d, i) {
-        if (i == activeIndex) {
+        if (i === activeIndex) {
           return 'button active'
         }
         return 'button'
@@ -140,8 +141,8 @@ export function render(didok_id, datetime) {
       })
   }
 
-  function mapWeatherToIconContent (weather_symbol) {
-    switch (Number(weather_symbol)) {
+  function mapWeatherToIconContent (weatherSymbol) {
+    switch (Number(weatherSymbol)) {
       case 0:
         return 'G'
       case 1:
@@ -203,7 +204,7 @@ export function render(didok_id, datetime) {
     // remove current visualization if already available
     container.selectAll('g#precipitationgraph').remove()
     container = container.append('g').attr('id', 'precipitationgraph').attr('class', 'graph')
-    container.style('opacity', 0.0).transition().style('opacity', 1.0)
+//    container.style('opacity', 0.0).transition().style('opacity', 1.0)
 
     // linechart scales
     var precipAccessor = function (d) {
@@ -306,7 +307,7 @@ export function render(didok_id, datetime) {
     // remove current visualization if already available
     container.selectAll('g#humiditygraph').remove()
     container = container.append('g').attr('id', 'humiditygraph').attr('class', 'graph')
-    container.style('opacity', 0.0).transition().style('opacity', 1.0)
+//    container.style('opacity', 0.0).transition().style('opacity', 1.0)
 
     // linechart scales
     var humidityAccessor = function (d) {
@@ -394,6 +395,14 @@ export function render(didok_id, datetime) {
       .attr('d', line)
       .attr('transform', 'translate(0,' + chartPosition + ')')
 
+    container.append('line')
+      .attr('class', 'currentMarker')
+      .attr('x1', xScale(moment(data.current.date)))
+      .attr('y1', chartHeight)
+      .attr('x2', xScale(moment(data.current.date)))
+      .attr('y2', 0)
+      .attr('transform', 'translate(0,' + chartPosition + ')')
+
     // draw axis
     container.append('g')
       .attr('class', 'x axis')
@@ -476,7 +485,7 @@ export function render(didok_id, datetime) {
     // chart with arrows
     var arrows = container.selectAll('text.arrow')
       .data(data.hourly.data.slice(0, 24).filter(function (d, i) {
-        return ((i + 1) % 3) == 0 && (i < 23)
+        return ((i + 1) % 3) === 0 && (i < 23)
       }))
       .enter()
     arrows.append('text')
@@ -627,70 +636,89 @@ export function render(didok_id, datetime) {
   }
 
   function addWeekdays (data, container) {
-    var dayPosition = 340
+    function selectWeatherSymbol (weatherSymbols) {
+      var symbols = weatherSymbols.split(' ').map(symbol => Number(symbol)).filter(symbol => symbol < 100)
+      return symbols[Math.floor(symbols.length / 2)]
+    }
 
     // remove current visualization if already available
     container.selectAll('g#weekdays').remove()
     container = container.append('g').attr('id', 'weekdays')
     container.style('opacity', 0.0).transition().style('opacity', 1.0)
 
-    var dayWidth = 65
+    var dayPosition = 420
+    var dayPositionRow = 115
+    var dayWidth = 75
 
     // days
     var day = container.selectAll('g')
-      .data(data.daily.data)
+      .data(data)
       .enter()
+      .append('a')
+      .attr('xlink:href', function (day) {
+        return '?dateTime=' + moment(day.date_min).set({h: 0, m: 0, s: 0, ms: 0}).utc().format() +
+               '&didokId=' + didokId +
+                (parameters.locale ? '&locale=' + parameters.locale : '')
+      })
       .append('g')
 
     // highlight
     day.append('rect')
       .attr('class', 'dayRect')
       .attr('x', function (day, index) {
-        return index * dayWidth
+        return (index % 7) * dayWidth
       })
-      .attr('y', dayPosition)
+      .attr('y', function (day, index) {
+        return dayPosition + Math.floor(index / 7) * dayPositionRow
+      })
       .attr('width', dayWidth)
       .attr('height', 100)
 
     // day name
     day.append('text')
       .text(function (day) {
-        return moment.tz(day.time * 1000, data.timezone).format('dd.')
+        return moment(day.date_min).format('dd, D. MMM')
       })
       .attr('class', 'dayName')
-      .attr('y', dayPosition + 20)
+      .attr('y', function (day, index) {
+        return dayPosition + Math.floor(index / 7) * dayPositionRow + 20
+      })
       .attr('x', function (day, index) {
-        return index * dayWidth + 30
+        return (index % 7) * dayWidth + 30
       })
 
     // day icon
     day.append('text')
       .text(function (day) {
-        return mapWeatherToIconContent(day.icon)
+        return mapWeatherToIconContent(selectWeatherSymbol(day.weather_symbols))
       })
       .attr('class', 'dayIcon')
-      .attr('y', dayPosition + 65)
+      .attr('y', function (day, index) {
+        return dayPosition + Math.floor(index / 7) * dayPositionRow + 80
+      })
       .attr('x', function (day, index) {
-        return index * dayWidth + 30
+        return (index % 7) * dayWidth + 30
       })
 
     // day temperatures
     var dayTemperatures = day.append('text')
-      .attr('y', dayPosition + 90)
+      .attr('y', function (day, index) {
+        return dayPosition + Math.floor(index / 7) * dayPositionRow + 90
+      })
       .attr('class', 'dayTemperatures')
       .attr('x', function (day, index) {
-        return index * dayWidth + 30
+        return (index % 7) * dayWidth + 30
       })
     dayTemperatures.append('tspan')
       .text(function (day) {
-        return numeral(day.temperatureMax).format('0') + '\u00B0'
+        return numeral(day.t_2m_max).format('0') + '\u00B0'
       })
       .attr('class', 'dayTemperatureMax')
     dayTemperatures.append('tspan')
       .text(function (day) {
-        return numeral(day.temperatureMin).format('0') + '\u00B0'
+        return numeral(day.t_2m_min).format('0') + '\u00B0'
       })
-      .attr('dx', 4)
+      .attr('dx', 10)
       .attr('class', 'dayTemperatureMin')
   }
 
@@ -700,7 +728,7 @@ export function render(didok_id, datetime) {
     // remove current visualization if already available
     container.selectAll('g#current').remove()
     container = container.append('g').attr('id', 'current')
-    container.style('opacity', 0.0).transition().style('opacity', 1.0)
+//    container.style('opacity', 0.0).transition().style('opacity', 1.0)
 
     // title
     container.append('text')
@@ -751,9 +779,8 @@ export function render(didok_id, datetime) {
       })
 */
 
-
     // weather icon
-    var icon = container.append('text')
+    container.append('text')
       .attr('class', 'icon')
       .attr('x', 0)
       .attr('y', detailPosition + 45)

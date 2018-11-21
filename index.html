@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>SBB Weather Widget</title>
     <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body onload="SbbWeatherApp.render();" style="text-align:center;">
@@ -37,6 +38,7 @@ ORDER BY ASC(?date)
     </script>
 
     <script id="weather-forecast.sparql" type="application/sparql-query">
+#Note: Query does aggregate days by UTC and not properly split the day by Timezone.
 PREFIX  mm:   <http://rdf.meteomatics.com/mm/>
 PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
 PREFIX  mm-parameters: <http://rdf.meteomatics.com/mm/parameters/>
@@ -80,7 +82,6 @@ WHERE
       }
   }
     </script>
-
 
     <script src="dist/SbbWeatherApp.js"></script>
 </body>
