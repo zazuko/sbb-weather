@@ -36,9 +36,6 @@ export function render (didokId, dateTime, locale, options) {
 
   // query forecast
   var queryForecast = queries.weatherForecast(date.startOf('isoweek').utc().format(), date.startOf('isoweek').add(3 * 7, 'days').utc().format(), didokId)
-//  query2 = query2.replace('${from}', date.startOf('isoweek').utc().format())
-//  query2 = query2.replace('${to}', date.startOf('isoweek').add(3 * 7, 'days').utc().format())
-//  query2 = query2.replace('${didok_id}', didokId)
 
   // widget global settings
   var width = 575
@@ -205,7 +202,7 @@ export function render (didokId, dateTime, locale, options) {
     var current = data.current
 
     // only get hours
-    data = data.filter(o => moment(o.date).minutes() === 0)
+    data = data.filter(o => moment(o.date).minutes() === 0).slice(1)
 
     var rectsWidth = Math.floor(chartWidth / data.length)
 
@@ -222,7 +219,7 @@ export function render (didokId, dateTime, locale, options) {
     var xScale = d3.scaleTime().range([0, chartWidth])
       .domain([
         moment(data[0].date),
-        moment(data[data.length - 1].date)
+        moment(moment(data[data.length-1].date))
       ])
     var yScale = d3.scaleLinear().range([0, chartHeight])
       .domain([
