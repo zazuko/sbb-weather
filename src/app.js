@@ -1,3 +1,5 @@
+import './app.css'
+
 import moment from 'moment'
 import 'moment/locale/de'
 import 'moment/locale/fr'
@@ -7,6 +9,8 @@ import * as d3 from 'd3'
 import {queue} from 'd3-queue'
 import {sparql} from 'd3-sparql'
 import queryString from 'query-string'
+
+import queries from './queries'
 
 /* global location */
 export function render (didokId, dateTime, locale, options) {
@@ -23,22 +27,18 @@ export function render (didokId, dateTime, locale, options) {
 
   didokId = parseInt(didokId) || parameters.didokId || 8504136
 
-  // query labels
-  var query0 = document.getElementById('weather-labels.sparql').innerHTML
-  query0 = query0.replace('${locale}', ['en', 'de', 'fr', 'it'].includes(locale.substring(0, 2)) ? locale.substring(0, 2) : 'en')
+  // query labels, use "en" if locale not in the available languages
+  var queryLabels = queries.weatherLabels(['en', 'de', 'fr', 'it'].includes(locale.substring(0, 2)) ? locale.substring(0, 2) : 'en')
   var label = {}
 
   // query day
-  var query1 = document.getElementById('weather-day.sparql').innerHTML
-  query1 = query1.replace('${from}', date.utc().format())
-  query1 = query1.replace('${to}', date.add(1, 'day').utc().format())
-  query1 = query1.replace('${didok_id}', didokId)
+  var queryDay = queries.weatherDay(date.utc().format(), date.add(1, 'day').utc().format(), didokId)
 
   // query forecast
-  var query2 = document.getElementById('weather-forecast.sparql').innerHTML
-  query2 = query2.replace('${from}', date.startOf('isoweek').utc().format())
-  query2 = query2.replace('${to}', date.startOf('isoweek').add(3 * 7, 'days').utc().format())
-  query2 = query2.replace('${didok_id}', didokId)
+  var queryForecast = queries.weatherForecast(date.startOf('isoweek').utc().format(), date.startOf('isoweek').add(3 * 7, 'days').utc().format(), didokId)
+//  query2 = query2.replace('${from}', date.startOf('isoweek').utc().format())
+//  query2 = query2.replace('${to}', date.startOf('isoweek').add(3 * 7, 'days').utc().format())
+//  query2 = query2.replace('${didok_id}', didokId)
 
   // widget global settings
   var width = 575
@@ -49,9 +49,9 @@ export function render (didokId, dateTime, locale, options) {
   var chartWidth = 525
 
   queue()
-  .defer(sparql, endpoint, query0)
-  .defer(sparql, endpoint, query1)
-  .defer(sparql, endpoint, query2)
+  .defer(sparql, endpoint, queryLabels)
+  .defer(sparql, endpoint, queryDay)
+  .defer(sparql, endpoint, queryForecast)
   .await(function (error, labels, data, data2) {
     if (error) { console.log(error) }
     // create labels

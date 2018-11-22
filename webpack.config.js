@@ -1,7 +1,8 @@
-const path = require('path');
+const path = require('path')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
-  entry: './src/SbbWeatherApp.js',
+  entry: './src/app.js',
   output: {
     library: 'SbbWeatherApp',
     path: path.resolve(__dirname, 'dist'),
@@ -19,14 +20,33 @@ module.exports = {
               [
                 '@babel/preset-env',
                 {
-                  "useBuiltIns": "usage",
-                  "debug": true
+                  'useBuiltIns': 'usage'
                 }
               ]
             ]
           }
         }
+      },
+      {
+        test: /\.(css)$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader'
+        ]
+      },
+      {
+        test: /\.woff($|\?)|\.woff2($|\?)|\.ttf($|\?)|\.eot($|\?)|\.svg($|\?)/,
+        use: {loader: 'file-loader',
+          options: {
+            name: '[path][name].[ext]'
+          }
+        }
       }
     ]
-  }
-};
+  },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: './SbbWeatherApp.css'
+    })
+  ]
+}
