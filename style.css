@@ -109,11 +109,6 @@ input{
 .dayTemperatureMin{
 	fill:#bababa;
 }
-.currentMarker{
-	fill: none;
-	stroke: rgba(100, 100, 100, 0.6);
-	stroke-width:4;
-}
 
 g#temperaturegraph path.area{
 	fill: rgba(225, 80, 35, 0.2);
@@ -144,11 +139,15 @@ g#humiditygraph .x.axis.humidity text{
 }
 
 g#precipitationgraph rect{
-	fill:#e7f1fd;
+	fill: rgba(48,118,195, 0.2);
 }
 g#precipitationgraph rect.stroke{
+	stroke: none;
+}
+g#precipitationgraph line.top{
 	stroke-width:1;
 	stroke: rgb(48,118,195);
+	shape-rendering: crispEdges;
 }
 g#precipitationgraph .x.axis.precipitation text{
 	fill: rgb(48,118,195);
@@ -194,4 +193,10 @@ g#windgraph text.arrow{
 .x.axis path, .x.axis line {
     fill: none;
     stroke: none
+}
+
+.x.axis.currentMarker{
+	fill: none;
+	stroke: rgba(100, 100, 100, 0.6);
+	stroke-width:4;
 }

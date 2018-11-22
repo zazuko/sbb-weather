@@ -46,6 +46,8 @@ export function render (didokId, dateTime, locale, options) {
   var marginTop = 45
   var marginLeft = 25
 
+  var chartWidth = 525
+
   queue()
   .defer(sparql, endpoint, query0)
   .defer(sparql, endpoint, query1)
@@ -199,19 +201,25 @@ export function render (didokId, dateTime, locale, options) {
   function setCurrentWeatherPrecipitationGraph (data, container) {
     var chartHeight = 60
     var chartPosition = 300
-    var rectsWidth = 525 / data.length
+
+    var current = data.current
+
+    // only get hours
+    data = data.filter(o => moment(o.date).minutes() === 0)
+
+    var rectsWidth = Math.floor(chartWidth / data.length)
 
     // remove current visualization if already available
     container.selectAll('g#precipitationgraph').remove()
     container = container.append('g').attr('id', 'precipitationgraph').attr('class', 'graph')
-//    container.style('opacity', 0.0).transition().style('opacity', 1.0)
+    container.style('opacity', 0.0).transition().style('opacity', 1.0)
 
     // linechart scales
     var precipAccessor = function (d) {
       return d.precip_1h
     }
 
-    var xScale = d3.scaleTime().range([0, 525])
+    var xScale = d3.scaleTime().range([0, chartWidth])
       .domain([
         moment(data[0].date),
         moment(data[data.length - 1].date)
@@ -262,22 +270,32 @@ export function render (didokId, dateTime, locale, options) {
       })
 
     // chart with rects
+    var lines = container.selectAll('line')
+      .data(data)
+      .enter()
+
+    lines.append('line')
+     .attr('class', 'top')
+     .attr('x1', 0)
+     .attr('y1', 0)
+     .attr('x2', rectsWidth)
+     .attr('y2', 0)
+     .attr('transform', function (d) {
+       var x = xScale(moment(d.date)) - (xScale(moment(d.date)) / 18)
+       var y = (-yScale(d.precip_1h) + chartHeight + chartPosition)
+       return 'translate(' + x + ', ' + y + ')'
+     })
+
+    // chart with rects
     var rects = container.selectAll('rect')
       .data(data)
       .enter()
+
     rects.append('rect')
       .attr('width', rectsWidth)
       .attr('height', function (d) {
-        return yScale(d.precip_1h)
+        return (yScale(d.precip_1h))
       })
-      .attr('transform', function (d) {
-        var x = xScale(moment(d.date)) - (xScale(moment(d.date) / 18))
-        var y = (chartHeight - yScale(d.precip_1h) + chartPosition)
-        return 'translate(' + x + ', ' + y + ')'
-      })
-    rects.append('rect')
-      .attr('width', rectsWidth)
-      .attr('height', 1)
       .attr('class', 'stroke')
       .attr('transform', function (d) {
         var x = xScale(moment(d.date)) - (xScale(moment(d.date)) / 18)
@@ -298,6 +316,13 @@ export function render (didokId, dateTime, locale, options) {
       .call(xAxisPrecipitation)
       .selectAll('text')
       .style('text-anchor', 'start')
+    container.append('line')
+      .attr('class', 'x axis currentMarker')
+      .attr('x1', xScale(moment(current.date)))
+      .attr('y1', chartHeight)
+      .attr('x2', xScale(moment(current.date)))
+      .attr('y2', 0)
+      .attr('transform', 'translate(0,' + chartPosition + ')')
   }
 
   function setCurrentWeatherHumidityGraph (data, container) {
@@ -307,14 +332,14 @@ export function render (didokId, dateTime, locale, options) {
     // remove current visualization if already available
     container.selectAll('g#humiditygraph').remove()
     container = container.append('g').attr('id', 'humiditygraph').attr('class', 'graph')
-//    container.style('opacity', 0.0).transition().style('opacity', 1.0)
+    container.style('opacity', 0.0).transition().style('opacity', 1.0)
 
     // linechart scales
     var humidityAccessor = function (d) {
       return d.relative_humidity_2m
     }
 
-    var xScale = d3.scaleTime().range([0, 525])
+    var xScale = d3.scaleTime().range([0, chartWidth])
       .domain([
         moment(data[0].date),
         moment(data[data.length - 1].date)
@@ -395,14 +420,6 @@ export function render (didokId, dateTime, locale, options) {
       .attr('d', line)
       .attr('transform', 'translate(0,' + chartPosition + ')')
 
-    container.append('line')
-      .attr('class', 'currentMarker')
-      .attr('x1', xScale(moment(data.current.date)))
-      .attr('y1', chartHeight)
-      .attr('x2', xScale(moment(data.current.date)))
-      .attr('y2', 0)
-      .attr('transform', 'translate(0,' + chartPosition + ')')
-
     // draw axis
     container.append('g')
       .attr('class', 'x axis')
@@ -416,6 +433,13 @@ export function render (didokId, dateTime, locale, options) {
       .call(xAxisHumidity)
       .selectAll('text')
       .style('text-anchor', 'start')
+    container.append('line')
+      .attr('class', 'x axis currentMarker')
+      .attr('x1', xScale(moment(data.current.date)))
+      .attr('y1', chartHeight)
+      .attr('x2', xScale(moment(data.current.date)))
+      .attr('y2', 0)
+      .attr('transform', 'translate(0,' + chartPosition + ')')
   }
 
   function setCurrentWeatherWindGraph (data, container) {
@@ -432,7 +456,7 @@ export function render (didokId, dateTime, locale, options) {
       return d.windSpeed
     }
 
-    var xScale = d3.scaleTime().range([0, 525])
+    var xScale = d3.scaleTime().range([0, chartWidth])
       .domain([
         moment.tz(data.hourly.data[0].time * 1000, data.timezone),
         moment.tz(data.hourly.data[23].time * 1000, data.timezone)
@@ -531,7 +555,7 @@ export function render (didokId, dateTime, locale, options) {
       return d.t_2m
     }
 
-    var xScale = d3.scaleTime().range([0, 525])
+    var xScale = d3.scaleTime().range([0, chartWidth])
       .domain([
         moment(data[0].date),
         moment(data[data.length - 1].date)
@@ -612,14 +636,6 @@ export function render (didokId, dateTime, locale, options) {
       .attr('d', line)
       .attr('transform', 'translate(0,' + chartPosition + ')')
 
-    container.append('line')
-      .attr('class', 'currentMarker')
-      .attr('x1', xScale(moment(data.current.date)))
-      .attr('y1', chartHeight)
-      .attr('x2', xScale(moment(data.current.date)))
-      .attr('y2', 0)
-      .attr('transform', 'translate(0,' + chartPosition + ')')
-
     // draw axis
     container.append('g')
       .attr('class', 'x axis')
@@ -633,6 +649,13 @@ export function render (didokId, dateTime, locale, options) {
       .call(xAxisTemperature)
       .selectAll('text')
       .style('text-anchor', 'start')
+    container.append('line')
+      .attr('class', 'x axis currentMarker')
+      .attr('x1', xScale(moment(data.current.date)))
+      .attr('y1', chartHeight)
+      .attr('x2', xScale(moment(data.current.date)))
+      .attr('y2', 0)
+      .attr('transform', 'translate(0,' + chartPosition + ')')
   }
 
   function addWeekdays (data, container) {
@@ -656,7 +679,7 @@ export function render (didokId, dateTime, locale, options) {
       .enter()
       .append('a')
       .attr('xlink:href', function (day) {
-        return '?dateTime=' + moment(day.date_min).set({h: 0, m: 0, s: 0, ms: 0}).utc().format() +
+        return '?dateTime=' + moment(day.date_min).set({h: 12, m: 0, s: 0, ms: 0}).utc().format() +
                '&didokId=' + didokId +
                 (parameters.locale ? '&locale=' + parameters.locale : '')
       })
