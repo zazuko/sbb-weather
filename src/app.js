@@ -13,7 +13,7 @@ import queryString from 'query-string'
 import queries from './queries'
 
 /* global location */
-export function render (didokId, dateTime, locale, options) {
+export function render (didok, dateTime, locale, options) {
   options = {} || options
   var endpoint = options.endpoint || '/query'
 
@@ -25,17 +25,17 @@ export function render (didokId, dateTime, locale, options) {
   dateTime = moment(dateTime || parameters.dateTime)
   var date = moment(dateTime).set({h: 0, m: 0, s: 0, ms: 0}).locale('en')
 
-  didokId = parseInt(didokId) || parameters.didokId || 8504136
+  didok = parseInt(didok) || parameters.didok || 8504136
 
   // query labels, use "en" if locale not in the available languages
   var queryLabels = queries.weatherLabels(['en', 'de', 'fr', 'it'].includes(locale.substring(0, 2)) ? locale.substring(0, 2) : 'en')
   var label = {}
 
   // query day
-  var queryDay = queries.weatherDay(date.utc().format(), date.add(1, 'day').utc().format(), didokId)
+  var queryDay = queries.weatherDay(date.utc().format(), date.add(1, 'day').utc().format(), didok)
 
   // query forecast
-  var queryForecast = queries.weatherForecast(date.startOf('isoweek').utc().format(), date.startOf('isoweek').add(3 * 7, 'days').utc().format(), didokId)
+  var queryForecast = queries.weatherForecast(date.startOf('isoweek').utc().format(), date.startOf('isoweek').add(3 * 7, 'days').utc().format(), didok)
 
   // widget global settings
   var width = 575
@@ -677,7 +677,7 @@ export function render (didokId, dateTime, locale, options) {
       .append('a')
       .attr('xlink:href', function (day) {
         return '?dateTime=' + moment(day.date_min).set({h: 12, m: 0, s: 0, ms: 0}).utc().format() +
-               '&didokId=' + didokId +
+               '&didok=' + didok +
                 (parameters.locale ? '&locale=' + parameters.locale : '')
       })
       .append('g')

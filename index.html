@@ -9,6 +9,10 @@
 </head>
 
 <body onload="SbbWeatherApp.render();" style="text-align:center;">
+    <div style="max-width: 575px!important; margin-bottom: 30px; display: inline-block;" onclick="this.parentNode.removeChild( this );">
+      <h2>Willkommen bei den Wetterprognosen zu den SBB Haltestellen. </h2>
+      <p>Um die Wetterprognose einer Haltestelle zu erhalten geben sie dessen internationale Haltestellen-Nummer (DIDOK) ein. Beispiel für Bern <a href="https://meteo.sbb.ch/?didok=8507000">https://meteo.sbb.ch/?didok=8507000</a> </p>
+    </div>
     <div id="diagram" style="margin: 0 auto;"></div>
 
     <script src="dist/SbbWeatherApp.js"></script>
