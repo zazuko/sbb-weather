@@ -657,7 +657,7 @@ export function render (didok, dateTime, locale, options) {
 
   function addWeekdays (data, container) {
     function selectWeatherSymbol (weatherSymbols) {
-      var symbols = weatherSymbols.split(' ').map(symbol => Number(symbol)).filter(symbol => symbol < 100)
+      var symbols = weatherSymbols.split(' ').map(symbol => Number(symbol))//.filter(symbol => symbol < 100)
       return symbols[Math.floor(symbols.length / 2)]
     }
 
